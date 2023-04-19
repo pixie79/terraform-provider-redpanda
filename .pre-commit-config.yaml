@@ -1,0 +1,49 @@
+# Quick start guide: https://pre-commit.com/
+
+# General Checks
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0  # Use the ref you want to point at
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-json
+      - id: pretty-format-json
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-docstring-first
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: fix-encoding-pragma
+      - id: forbid-new-submodules
+      - id: name-tests-test
+
+# Terraform Checks
+
+  - repo: https://github.com/antonbabenko/pre-commit-terraform
+    rev: v1.77.2
+    hooks:
+      - id: terraform_fmt
+      - id: terraform_tfsec
+      - id: terraform_tflint
+      - id: terraform_docs
+        args:
+          - --hook-config=--path-to-file=README.md        # Valid UNIX path. I.e. ../TFDOC.md or docs/README.md etc.
+          - --hook-config=--add-to-existing-file=true     # Boolean. true or false
+
+# GitHub Action Checks
+
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.22.0
+    hooks:
+      - id: check-github-workflows
+
+  - repo: https://github.com/dnephin/pre-commit-golang
+    rev: v0.5.1
+    hooks:
+      - id: go-fmt
+      - id: no-go-testing
+      - id: golangci-lint
+      - id: go-unit-tests

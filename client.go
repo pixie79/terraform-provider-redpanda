@@ -2,12 +2,12 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
-	"bytes"
 )
 
 type Client struct {
@@ -21,8 +21,8 @@ func NewClient(apiURL string) *Client {
 }
 
 type Topic struct {
-	Name             string `json:"name"`
-	Partitions       int    `json:"partitions"`
+	Name              string `json:"name"`
+	Partitions        int    `json:"partitions"`
 	ReplicationFactor int    `json:"replication_factor"`
 }
 
@@ -45,7 +45,7 @@ func (c *Client) CreateTopic(topic *Topic) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusCreated {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return errors.New(string(bodyBytes))
 	}
 
@@ -66,7 +66,7 @@ func (c *Client) GetTopic(topicName string) (*Topic, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return nil, errors.New(string(bodyBytes))
 	}
 
@@ -78,7 +78,6 @@ func (c *Client) GetTopic(topicName string) (*Topic, error) {
 
 	return &topic, nil
 }
-
 
 func (c *Client) UpdateTopic(topic *Topic) error {
 	reqBody, err := json.Marshal(topic)
@@ -99,7 +98,7 @@ func (c *Client) UpdateTopic(topic *Topic) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return errors.New(string(bodyBytes))
 	}
 
@@ -120,7 +119,7 @@ func (c *Client) DeleteTopic(topicName string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusNoContent {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return errors.New(string(bodyBytes))
 	}
 
@@ -128,11 +127,11 @@ func (c *Client) DeleteTopic(topicName string) error {
 }
 
 type Schema struct {
-	Subject     string `json:"subject"`
-	Schema      string `json:"schema"`
-	SchemaType  string `json:"schema_type,omitempty"`
-	Version     int    `json:"version,omitempty"`
-	Id          int    `json:"id,omitempty"`
+	Subject    string `json:"subject"`
+	Schema     string `json:"schema"`
+	SchemaType string `json:"schema_type,omitempty"`
+	Version    int    `json:"version,omitempty"`
+	Id         int    `json:"id,omitempty"`
 }
 
 func (c *Client) CreateSchema(schema *Schema) error {
@@ -154,7 +153,7 @@ func (c *Client) CreateSchema(schema *Schema) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return errors.New(string(bodyBytes))
 	}
 
@@ -171,7 +170,6 @@ func (c *Client) CreateSchema(schema *Schema) error {
 	return nil
 }
 
-
 func (c *Client) GetSchema(subject string, version string) (*Schema, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions/%s", c.APIURL, subject, version), nil)
 	if err != nil {
@@ -186,7 +184,7 @@ func (c *Client) GetSchema(subject string, version string) (*Schema, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return nil, errors.New(string(bodyBytes))
 	}
 
@@ -214,12 +212,10 @@ func (c *Client) GetSchema(subject string, version string) (*Schema, error) {
 	return schema, nil
 }
 
-
 func (c *Client) UpdateSchema(schema *Schema) error {
-    // Alias to CreateSchema as schemas are created as new versions
+	// Alias to CreateSchema as schemas are created as new versions
 	return c.CreateSchema(schema)
 }
-
 
 func (c *Client) DeleteSchema(subject string) error {
 	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/subjects/%s", c.APIURL, subject), nil)
@@ -235,7 +231,7 @@ func (c *Client) DeleteSchema(subject string) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		return errors.New(string(bodyBytes))
 	}
 

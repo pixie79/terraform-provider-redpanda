@@ -50,7 +50,9 @@ func resourceRedPandaSchemaCreate(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	d.SetId(schema.Subject)
-	d.Set("version", schema.Version)
+	if err := d.Set("version", schema.Version); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return resourceRedPandaSchemaRead(ctx, d, m)
 }
@@ -58,15 +60,32 @@ func resourceRedPandaSchemaCreate(ctx context.Context, d *schema.ResourceData, m
 func resourceRedPandaSchemaRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
 	client := m.(*Client)
 
-	schema, err := client.GetSchema(d.Id(), "latest")
+	subject := d.Id()
+
+	version := d.Get("version").(string)
+
+	schema, err := client.GetSchema(subject, version)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	d.Set("subject", schema.Subject)
-	d.Set("schema", schema.Schema)
-	d.Set("schema_type", schema.SchemaType)
-	d.Set("version", schema.Version)
+	if schema == nil {
+		d.SetId("")
+		return nil
+	}
+
+	if err := d.Set("subject", schema.Subject); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("schema", schema.Schema); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("schema_type", schema.SchemaType); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("version", schema.Version); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }

@@ -36,8 +36,8 @@ func resourceRedPandaTopicCreate(ctx context.Context, d *schema.ResourceData, m 
 	client := m.(*Client)
 
 	topic := &Topic{
-		Name:             d.Get("name").(string),
-		Partitions:       d.Get("partitions").(int),
+		Name:              d.Get("name").(string),
+		Partitions:        d.Get("partitions").(int),
 		ReplicationFactor: d.Get("replication_factor").(int),
 	}
 
@@ -59,9 +59,15 @@ func resourceRedPandaTopicRead(ctx context.Context, d *schema.ResourceData, m in
 		return diag.FromErr(err)
 	}
 
-	d.Set("name", topic.Name)
-	d.Set("partitions", topic.Partitions)
-	d.Set("replication_factor", topic.ReplicationFactor)
+	if err := d.Set("name", topic.Name); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("partitions", topic.Partitions); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("replication_factor", topic.ReplicationFactor); err != nil {
+		return diag.FromErr(err)
+	}
 
 	return nil
 }
@@ -70,8 +76,8 @@ func resourceRedPandaTopicUpdate(ctx context.Context, d *schema.ResourceData, m 
 	client := m.(*Client)
 
 	topic := &Topic{
-		Name:             d.Get("name").(string),
-		Partitions:       d.Get("partitions").(int),
+		Name:              d.Get("name").(string),
+		Partitions:        d.Get("partitions").(int),
 		ReplicationFactor: d.Get("replication_factor").(int),
 	}
 
