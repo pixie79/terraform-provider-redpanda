@@ -16,19 +16,19 @@ jobs:
     defaults:
       run:
         working-directory: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
-    
+
     runs-on: ubuntu-latest
     strategy:
       matrix:
         # build and publish in parallel: linux/amd64, linux/arm64, darwin/amd64, darwin/arm64
         goos: [linux, darwin]
         goarch: [amd64, arm64]
-    
-    steps:        
+
+    steps:
     - uses: actions/checkout@v3
       with:
         path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
-        
+
     - uses: wangyoucao577/go-release-action@v1
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
@@ -37,3 +37,4 @@ jobs:
         goversion: "1.20"
         pre_command: go mod tidy
         extra_files: LICENSE README.md
+        project_path: ${{ env.GOPATH }}/src/github.com/${{ github.repository }}
