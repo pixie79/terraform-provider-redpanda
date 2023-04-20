@@ -34,7 +34,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        go get .
+        go mod tidy
 
     - name: Build
       run: go build -o terraform-provider-redpanda
