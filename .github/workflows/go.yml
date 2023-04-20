@@ -15,13 +15,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 1
+        path: go/src/github.com/pixie79/terraform-provider-redpanda
 
     - name: Set up Go
       uses: actions/setup-go@v3
       with:
         go-version: 1.20
-        fetch-depth: 1
-        path: go/src/github.com/pixie79/terraform-provider-redpanda
 
     - name: Build
       run: go build -o terraform-provider-redpanda
