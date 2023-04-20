@@ -32,5 +32,9 @@ jobs:
         
     - run: go version
     
+    - name: Install dependencies
+      run: |
+        go get .
+
     - name: Build
       run: go build -o terraform-provider-redpanda
