@@ -126,16 +126,27 @@ func (c *Client) DeleteTopic(topicName string) error {
 	return nil
 }
 
+type SchemaInfo struct {
+	Schema     string `json:"schema"`
+	SchemaType string `json:"schemaType,omitempty"`
+}
+
 type Schema struct {
 	Subject    string `json:"subject"`
 	Schema     string `json:"schema"`
-	SchemaType string `json:"schema_type,omitempty"`
+	SchemaType string `json:"schemaType,omitempty"`
 	Version    int    `json:"version,omitempty"`
 	Id         int    `json:"id,omitempty"`
 }
 
 func (c *Client) CreateSchema(schema *Schema) error {
-	reqBody, err := json.Marshal(schema)
+
+	schemaInfo := SchemaInfo{
+		Schema:     schema.Schema,
+		SchemaType: schema.SchemaType,
+	}
+
+	reqBody, err := json.Marshal(schemaInfo)
 	if err != nil {
 		return err
 	}
@@ -144,7 +155,7 @@ func (c *Client) CreateSchema(schema *Schema) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/vnd.schemaregistry.v1+json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -175,7 +186,7 @@ func (c *Client) GetSchema(subject string, version string) (*Schema, error) {
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/vnd.schemaregistry.v1+json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -222,7 +233,7 @@ func (c *Client) DeleteSchema(subject string) error {
 	if err != nil {
 		return err
 	}
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/vnd.schemaregistry.v1+json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {

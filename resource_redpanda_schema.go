@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -62,7 +63,12 @@ func resourceRedPandaSchemaRead(ctx context.Context, d *schema.ResourceData, m i
 
 	subject := d.Id()
 
-	version := d.Get("version").(string)
+	var version string
+	if d.Get("version") == 0 {
+		version = "latest"
+	} else {
+		version = fmt.Sprintf("%d", d.Get("version"))
+	}
 
 	schema, err := client.GetSchema(subject, version)
 	if err != nil {
