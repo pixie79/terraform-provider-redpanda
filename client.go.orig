@@ -20,111 +20,111 @@ func NewClient(apiURL string) *Client {
 	}
 }
 
-type Topic struct {
-	Name              string `json:"name"`
-	Partitions        int    `json:"partitions"`
-	ReplicationFactor int    `json:"replication_factor"`
-}
-
-func (c *Client) CreateTopic(topic *Topic) error {
-	reqBody, err := json.Marshal(topic)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/topics", c.APIURL), bytes.NewBuffer(reqBody))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusCreated {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return errors.New(string(bodyBytes))
-	}
-
-	return nil
-}
-
-func (c *Client) GetTopic(topicName string) (*Topic, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/topics/%s", c.APIURL, topicName), nil)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return nil, errors.New(string(bodyBytes))
-	}
-
-	var topic Topic
-	err = json.NewDecoder(resp.Body).Decode(&topic)
-	if err != nil {
-		return nil, err
-	}
-
-	return &topic, nil
-}
-
-func (c *Client) UpdateTopic(topic *Topic) error {
-	reqBody, err := json.Marshal(topic)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/topics/%s", c.APIURL, topic.Name), bytes.NewBuffer(reqBody))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return errors.New(string(bodyBytes))
-	}
-
-	return nil
-}
-
-func (c *Client) DeleteTopic(topicName string) error {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/topics/%s", c.APIURL, topicName), nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusNoContent {
-		bodyBytes, _ := io.ReadAll(resp.Body)
-		return errors.New(string(bodyBytes))
-	}
-
-	return nil
-}
+// type Topic struct {
+// 	Name              string `json:"name"`
+// 	Partitions        int    `json:"partitions"`
+// 	ReplicationFactor int    `json:"replication_factor"`
+// }
+//
+// func (c *Client) CreateTopic(topic *Topic) error {
+// 	reqBody, err := json.Marshal(topic)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	req, err := http.NewRequest("POST", fmt.Sprintf("%s/topics", c.APIURL), bytes.NewBuffer(reqBody))
+// 	if err != nil {
+// 		return err
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+//
+// 	resp, err := http.DefaultClient.Do(req)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer resp.Body.Close()
+//
+// 	if resp.StatusCode != http.StatusCreated {
+// 		bodyBytes, _ := io.ReadAll(resp.Body)
+// 		return errors.New(string(bodyBytes))
+// 	}
+//
+// 	return nil
+// }
+//
+// func (c *Client) GetTopic(topicName string) (*Topic, error) {
+// 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/topics/%s", c.APIURL, topicName), nil)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+//
+// 	resp, err := http.DefaultClient.Do(req)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer resp.Body.Close()
+//
+// 	if resp.StatusCode != http.StatusOK {
+// 		bodyBytes, _ := io.ReadAll(resp.Body)
+// 		return nil, errors.New(string(bodyBytes))
+// 	}
+//
+// 	var topic Topic
+// 	err = json.NewDecoder(resp.Body).Decode(&topic)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+//
+// 	return &topic, nil
+// }
+//
+// func (c *Client) UpdateTopic(topic *Topic) error {
+// 	reqBody, err := json.Marshal(topic)
+// 	if err != nil {
+// 		return err
+// 	}
+//
+// 	req, err := http.NewRequest("PUT", fmt.Sprintf("%s/topics/%s", c.APIURL, topic.Name), bytes.NewBuffer(reqBody))
+// 	if err != nil {
+// 		return err
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+//
+// 	resp, err := http.DefaultClient.Do(req)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer resp.Body.Close()
+//
+// 	if resp.StatusCode != http.StatusOK {
+// 		bodyBytes, _ := io.ReadAll(resp.Body)
+// 		return errors.New(string(bodyBytes))
+// 	}
+//
+// 	return nil
+// }
+//
+// func (c *Client) DeleteTopic(topicName string) error {
+// 	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/topics/%s", c.APIURL, topicName), nil)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	req.Header.Set("Content-Type", "application/json")
+//
+// 	resp, err := http.DefaultClient.Do(req)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer resp.Body.Close()
+//
+// 	if resp.StatusCode != http.StatusNoContent {
+// 		bodyBytes, _ := io.ReadAll(resp.Body)
+// 		return errors.New(string(bodyBytes))
+// 	}
+//
+// 	return nil
+// }
 
 type SchemaInfo struct {
 	Schema     string `json:"schema"`
