@@ -3,11 +3,10 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/hashicorp/terraform-plugin-framework/provider"
+	"github.com/pixie79/terraform-provider-redpanda/internal/provider"
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
-	// 	"github.com/pixie79/terraform-provider-redpanda/internal/provider"
 )
 
 // Run "go generate" to format example terraform files and generate the docs for the registry/website
@@ -37,7 +36,7 @@ func main() {
 
 	opts := providerserver.ServeOpts{
 		// TODO: Update this string with the published name of your provider.
-		Address: "registry.terraform.io/pixie79/redpanda",
+		Address: "local.com/pixie79/internal",
 		Debug:   debug,
 	}
 
