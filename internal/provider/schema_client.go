@@ -81,8 +81,6 @@ func (c *ClientSchema) CreateSchema(schema *SchemaModel) error {
 		return err
 	}
 
-	schema.Id = types.Int64Value(schemaResponse.Id)
-
 	reqVersion, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions", c.APIURL, subject), bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
@@ -100,7 +98,6 @@ func (c *ClientSchema) CreateSchema(schema *SchemaModel) error {
 		}
 	}(respVersion.Body)
 
-	fmt.Println(respVersion.Body)
 	if respVersion.StatusCode != http.StatusOK {
 		bodyBytes, _ := io.ReadAll(respVersion.Body)
 		return errors.New(string(bodyBytes))
@@ -116,10 +113,10 @@ func (c *ClientSchema) CreateSchema(schema *SchemaModel) error {
 	schemaVersionResponseLen := len(schemaVersionResponse)
 	sort.Ints(schemaVersionResponse)
 	version := schemaVersionResponse[schemaVersionResponseLen-1]
-	fmt.Println(version)
+
+	schema.Id = types.Int64Value(schemaResponse.Id)
 	schema.Version = types.Int64Value(int64(version))
 
-	fmt.Println(schema)
 	return nil
 }
 

@@ -106,6 +106,7 @@ func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest,
 	tflog.Trace(ctx, "created a resource")
 
 	data.Version = schemaModel.Version
+	data.Id = schemaModel.Id
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
