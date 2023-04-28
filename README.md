@@ -14,22 +14,22 @@ This is a custom Terraform provider for managing topics and schemas in Red Panda
 
 ```bash
 git clone https://github.com/pixie79/terraform-provider-redpanda.git
-cd terraform-provider-redpanda
+cd terraform-provider-internal
 ```
 
 
 2. Build the provider:
 
 ```bash
-go build -o terraform-provider-redpanda
+go build -o terraform-provider-internal
 ```
 
 
 3. Install the provider:
 
 ```bash
-mkdir -p ~/.terraform.d/plugins/example.com/local/redpanda/0.1.0/linux_amd64
-mv terraform-provider-redpanda ~/.terraform.d/plugins/example.com/local/redpanda/0.1.0/linux_amd64/
+mkdir -p ~/.terraform.d/plugins/example.com/local/internal/0.1.0/linux_amd64
+mv terraform-provider-internal ~/.terraform.d/plugins/example.com/local/internal/0.1.0/linux_amd64/
 ```
 
 Replace `linux_amd64` with the appropriate directory for your platform if needed.
@@ -42,7 +42,7 @@ Replace `linux_amd64` with the appropriate directory for your platform if needed
 terraform {
   required_providers {
     redpanda = {
-      source  = "example.com/local/redpanda"
+      source  = "example.com/local/internal"
       version = "0.1.0"
     }
   }
@@ -58,7 +58,7 @@ resource "redpanda_topic" "example_topic" {
   replication_factor = 1
 }
 
-resource "redpanda_schema" "example_schema" {
+resource "schema" "example_schema" {
   subject    = "example-topic-value"
   schema     = "{\"type\": \"record\", \"name\": \"example\", \"fields\": [{\"name\": \"field1\", \"type\": \"string\"}]}"
   schema_type = "AVRO"
