@@ -18,4 +18,10 @@ Schema resource
 ### Required
 
 - `subject` (String) Schema Subject
+
+### Read-Only
+
+- `id` (Number) Id of Schema
+- `schema` (String) Schema - string encoded
+- `schema_type` (String) Schema Type, defaults to AVRO
 - `version` (Number) Version of Schema

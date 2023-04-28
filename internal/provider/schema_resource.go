@@ -122,55 +122,9 @@ func (r *SchemaResource) Read(ctx context.Context, req resource.ReadRequest, res
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
-
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
-
-// func SchemaResourceRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	client := m.(*Client)
-//
-// 	subject := d.Id()
-//
-// 	var version string
-// 	if d.Get("version") == 0 {
-// 		version = "latest"
-// 	} else {
-// 		version = fmt.Sprintf("%d", d.Get("version"))
-// 	}
-//
-// 	schema, err := client.GetSchema(subject, version)
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
-//
-// 	if schema == nil {
-// 		d.SetId("")
-// 		return nil
-// 	}
-//
-// 	if err := d.Set("subject", schema.Subject); err != nil {
-// 		return diag.FromErr(err)
-// 	}
-// 	if err := d.Set("schema", schema.Schema); err != nil {
-// 		return diag.FromErr(err)
-// 	}
-// 	if err := d.Set("schema_type", schema.SchemaType); err != nil {
-// 		return diag.FromErr(err)
-// 	}
-// 	if err := d.Set("version", schema.Version); err != nil {
-// 		return diag.FromErr(err)
-// 	}
-//
-// 	return nil
-// }
 
 func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
 	var data *SchemaModel
@@ -182,34 +136,27 @@ func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
-	//     return
-	// }
+	schemaModel := &SchemaModel{
+		Subject:    data.Subject,
+		Schema:     data.Schema,
+		SchemaType: data.SchemaType,
+	}
+
+	err := r.client.UpdateSchema(schemaModel)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create schema, got error: %s", err))
+		return
+	}
+
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "created a resource")
+
+	data.Version = schemaModel.Version
+	data.Id = schemaModel.Id
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
-
-// func SchemaResourceUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	client := m.(*Client)
-//
-// 	schema := &Schema{
-// 		Subject:    d.Get("subject").(string),
-// 		Schema:     d.Get("schema").(string),
-// 		SchemaType: d.Get("schema_type").(string),
-// 	}
-//
-// 	err := client.UpdateSchema(schema)
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
-//
-// 	return SchemaResourceRead(ctx, d, m)
-// }
 
 func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
 	var data *SchemaModel
@@ -221,27 +168,16 @@ func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest,
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete example, got error: %s", err))
-	//     return
-	// }
-}
+	err := r.client.DeleteSchema(data.Subject.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create schema, got error: %s", err))
+		return
+	}
 
-// func SchemaResourceDelete(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-// 	client := m.(*Client)
-//
-// 	err := client.DeleteSchema(d.Id())
-// 	if err != nil {
-// 		return diag.FromErr(err)
-// 	}
-//
-// 	d.SetId("")
-//
-// 	return nil
-// }
+	// Write logs using the tflog package
+	tflog.Trace(ctx, "created a resource")
+
+}
 
 func (r *SchemaResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("version"), req, resp)

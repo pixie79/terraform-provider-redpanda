@@ -4,9 +4,9 @@ package provider
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 )
 
@@ -36,9 +36,21 @@ func (d *SchemaDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 				MarkdownDescription: "Schema Subject",
 				Required:            true,
 			},
+			"schema": schema.StringAttribute{
+				MarkdownDescription: "Schema - string encoded",
+				Computed:            true,
+			},
+			"schema_type": schema.StringAttribute{
+				MarkdownDescription: "Schema Type, defaults to AVRO",
+				Computed:            true,
+			},
 			"version": schema.Int64Attribute{
+				Computed:            true,
 				MarkdownDescription: "Version of Schema",
-				Required:            true,
+			},
+			"id": schema.Int64Attribute{
+				Computed:            true,
+				MarkdownDescription: "Id of Schema",
 			},
 		},
 	}
@@ -74,21 +86,25 @@ func (d *SchemaDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := d.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
+	version, err := d.client.GetLatestVersion(data.Subject.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create schema, got error: %s", err))
+		return
+	}
 
-	// For the purposes of this example code, hardcoding a response value to
-	// save into the Terraform state.
-	//data.Version = types.Int64Value(data.version)
-
+	schemaModel, err := d.client.GetSchema(data.Subject.ValueString(), version)
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create schema, got error: %s", err))
+		return
+	}
 	// Write logs using the tflog package
-	// Documentation: https://terraform.io/plugin/log
 	tflog.Trace(ctx, "read a data source")
+
+	data.Version = types.Int64Value(version)
+	data.Id = schemaModel.Id
+	data.Subject = schemaModel.Subject
+	data.Schema = schemaModel.Schema
+	data.SchemaType = schemaModel.SchemaType
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
