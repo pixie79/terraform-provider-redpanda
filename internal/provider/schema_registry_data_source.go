@@ -1,4 +1,5 @@
-// Package provider.go
+// Package provider
+
 package provider
 
 import (
@@ -11,22 +12,22 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ datasource.DataSource = &SchemaDataSource{}
+var _ datasource.DataSource = &SchemaRegistryDataSource{}
 
-func NewSchemaDataSource() datasource.DataSource {
-	return &SchemaDataSource{}
+// SchemaRegistryDataSource defines the data source implementation.
+type SchemaRegistryDataSource struct {
+	client *RedPandaProvider
 }
 
-// SchemaDataSource defines the data source implementation.
-type SchemaDataSource struct {
-	client *ClientSchema
+func NewSchemaRegistryDataSource() datasource.DataSource {
+	return &SchemaRegistryDataSource{}
 }
 
-func (d *SchemaDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
+func (d *SchemaRegistryDataSource) Metadata(_ context.Context, req datasource.MetadataRequest, resp *datasource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_schema"
 }
 
-func (d *SchemaDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
+func (d *SchemaRegistryDataSource) Schema(_ context.Context, _ datasource.SchemaRequest, resp *datasource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Schema resource",
@@ -56,28 +57,32 @@ func (d *SchemaDataSource) Schema(_ context.Context, _ datasource.SchemaRequest,
 	}
 }
 
-func (d *SchemaDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
+func (d *SchemaRegistryDataSource) Configure(_ context.Context, req datasource.ConfigureRequest, resp *datasource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
 
-	client, ok := req.ProviderData.(*ClientSchema)
+	apiURL := req.ProviderData.(*RedPandaProvider).SchemaRegistryApiUrl.ValueString()
+	fmt.Println("API: " + apiURL)
+	//client := NewSchemaRegistryDataSource()
+	//client, ok := req.ProviderData.(*RedPandaProviderModel)
+	//
+	//if !ok {
+	//	resp.Diagnostics.AddError(
+	//		"Unexpected Data Source Configure Type",
+	//		fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+	//	)
+	//
+	//	return
+	//}
 
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Data Source Configure Type",
-			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
+	d.client = req.ProviderData.(*RedPandaProvider)
 
-		return
-	}
-
-	d.client = client
 }
 
-func (d *SchemaDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
-	var data SchemaModel
+func (d *SchemaRegistryDataSource) Read(ctx context.Context, req datasource.ReadRequest, resp *datasource.ReadResponse) {
+	var data SchemaRegistryModel
 
 	// Read Terraform configuration data into the model
 	resp.Diagnostics.Append(req.Config.Get(ctx, &data)...)
@@ -92,7 +97,7 @@ func (d *SchemaDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 		return
 	}
 
-	schemaModel, err := d.client.GetSchema(data.Subject.ValueString(), version)
+	SchemaRegistryModel, err := d.client.GetSchema(data.Subject.ValueString(), version)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create schema, got error: %s", err))
 		return
@@ -101,10 +106,10 @@ func (d *SchemaDataSource) Read(ctx context.Context, req datasource.ReadRequest,
 	tflog.Trace(ctx, "read a data source")
 
 	data.Version = types.Int64Value(version)
-	data.Id = schemaModel.Id
-	data.Subject = schemaModel.Subject
-	data.Schema = schemaModel.Schema
-	data.SchemaType = schemaModel.SchemaType
+	data.Id = SchemaRegistryModel.Id
+	data.Subject = SchemaRegistryModel.Subject
+	data.Schema = SchemaRegistryModel.Schema
+	data.SchemaType = SchemaRegistryModel.SchemaType
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

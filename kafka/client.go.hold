@@ -1,5 +1,5 @@
-// Package provider.go
-package provider
+// Package kafka
+package kafka
 
 import (
 	"bytes"
@@ -12,28 +12,28 @@ import (
 	"strings"
 )
 
-type ClientTopic struct {
+type ClientKafka struct {
 	BOOTSTRAPSERVERS string
 }
 
-func NewClientTopic(bootstrapServers string) *ClientTopic {
-	return &ClientTopic{
+func NewClientKafka(bootstrapServers string) *ClientKafka {
+	return &ClientKafka{
 		BOOTSTRAPSERVERS: bootstrapServers,
 	}
 }
 
 type TopicInfo struct {
-	Topic string `json:"topic"`
+	Topic string `json:"kafka"`
 }
 
 type TopicModel struct {
-	Topic             types.String `tfsdk:"topic"`
+	Topic             types.String `tfsdk:"kafka"`
 	ReplicationFactor types.Int64  `tfsdk:"replication_factor"`
 	Partitions        types.Int64  `tfsdk:"partitions"`
 	CleanupPolicy     types.String `tfsdk:"cleanup_policy"`
 }
 
-func (c *ClientTopic) CreateTopic(schema *TopicModel) error {
+func (c *ClientKafka) CreateTopic(schema *TopicModel) error {
 
 	topicInfo := TopicInfo{
 		Topic: schema.Topic.ValueString(),
@@ -86,9 +86,9 @@ func (c *ClientTopic) CreateTopic(schema *TopicModel) error {
 	return nil
 }
 
-//func (c *ClientTopic) GetLatestVersion(topic string) (int64, error) {
+//func (c *ClientKafka) GetLatestVersion(kafka string) (int64, error) {
 //
-//	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions", c.APIURL, topic), nil)
+//	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions", c.APIURL, kafka), nil)
 //	if err != nil {
 //		return 0, err
 //	}
@@ -124,8 +124,8 @@ func (c *ClientTopic) CreateTopic(schema *TopicModel) error {
 //
 //}
 
-//func (c *ClientTopic) GetTopic(topic string, version int64) (*TopicModel, error) {
-//	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions/%d", c.APIURL, topic, version), nil)
+//func (c *ClientKafka) GetTopic(kafka string, version int64) (*TopicModel, error) {
+//	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions/%d", c.APIURL, kafka, version), nil)
 //	if err != nil {
 //		return nil, err
 //	}
@@ -148,7 +148,7 @@ func (c *ClientTopic) CreateTopic(schema *TopicModel) error {
 //	}
 //
 //	var topicResponse struct {
-//		Topic             string `json:"topic"`
+//		Topic             string `json:"kafka"`
 //		ReplicationFactor int64  `json:"replication_factor"`
 //		Partitions        int64  `json:"partitions"`
 //		CleanupPolicy     string `json:"cleanup_policy"`
@@ -176,13 +176,13 @@ func (c *ClientTopic) CreateTopic(schema *TopicModel) error {
 //	return schema, nil
 //}
 
-//func (c *ClientTopic) UpdateTopic(schema *TopicModel) error {
+//func (c *ClientKafka) UpdateTopic(schema *TopicModel) error {
 //	// Alias to CreateSchema as schemas are created as new versions
 //	return c.CreateTopic(schema)
 //}
 
-//func (c *ClientTopic) DeleteTopic(topic string) error {
-//	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/subjects/%s", c.topic, topic), nil)
+//func (c *ClientKafka) DeleteTopic(kafka string) error {
+//	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/subjects/%s", c.kafka, kafka), nil)
 //	if err != nil {
 //		return err
 //	}

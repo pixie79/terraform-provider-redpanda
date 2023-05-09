@@ -1,4 +1,5 @@
-// Package provider.go
+// Package provider
+
 package provider
 
 import (
@@ -12,23 +13,23 @@ import (
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
-var _ resource.Resource = &SchemaResource{}
-var _ resource.ResourceWithImportState = &SchemaResource{}
+var _ resource.Resource = &SchemaRegistryResource{}
+var _ resource.ResourceWithImportState = &SchemaRegistryResource{}
 
-func NewSchemaResource() resource.Resource {
-	return &SchemaResource{}
+func NewSchemaRegistryResource() resource.Resource {
+	return &SchemaRegistryResource{}
 }
 
-// SchemaResource defines the resource implementation.
-type SchemaResource struct {
-	client *ClientSchema
+// SchemaRegistryResource defines the resource implementation.
+type SchemaRegistryResource struct {
+	client *RedPandaProvider
 }
 
-func (r *SchemaResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
+func (r *SchemaRegistryResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
 	resp.TypeName = req.ProviderTypeName + "_schema"
 }
 
-func (r *SchemaResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
+func (r *SchemaRegistryResource) Schema(_ context.Context, _ resource.SchemaRequest, resp *resource.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		// This description is used by the documentation generator and the language server.
 		MarkdownDescription: "Schema resource",
@@ -60,28 +61,30 @@ func (r *SchemaResource) Schema(_ context.Context, _ resource.SchemaRequest, res
 	}
 }
 
-func (r *SchemaResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
+func (r *SchemaRegistryResource) Configure(_ context.Context, req resource.ConfigureRequest, resp *resource.ConfigureResponse) {
 	// Prevent panic if the provider has not been configured.
 	if req.ProviderData == nil {
 		return
 	}
 
-	client, ok := req.ProviderData.(*ClientSchema)
+	apiURL := req.ProviderData.(*RedPandaProvider).SchemaRegistryApiUrl
 
-	if !ok {
-		resp.Diagnostics.AddError(
-			"Unexpected Resource Configure Type",
-			fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
-		)
+	client := NewClientSchemaRegistry(apiURL)
 
-		return
-	}
+	//if !ok {
+	//	resp.Diagnostics.AddError(
+	//		"Unexpected Resource Configure Type",
+	//		fmt.Sprintf("Expected *http.Client, got: %T. Please report this issue to the provider developers.", req.ProviderData),
+	//	)
+	//
+	//	return
+	//}
 
 	r.client = client
 }
 
-func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
-	var data SchemaModel
+func (r *SchemaRegistryResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
+	var data SchemaRegistryModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -90,13 +93,13 @@ func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest,
 		return
 	}
 
-	schemaModel := &SchemaModel{
+	SchemaRegistryModel := &SchemaRegistryModel{
 		Subject:    data.Subject,
 		Schema:     data.Schema,
 		SchemaType: data.SchemaType,
 	}
 
-	err := r.client.CreateSchema(schemaModel)
+	err := r.client.CreateSchema(SchemaRegistryModel)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create schema, got error: %s", err))
 		return
@@ -105,15 +108,15 @@ func (r *SchemaResource) Create(ctx context.Context, req resource.CreateRequest,
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a resource")
 
-	data.Version = schemaModel.Version
-	data.Id = schemaModel.Id
+	data.Version = SchemaRegistryModel.Version
+	data.Id = SchemaRegistryModel.Id
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *SchemaResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
-	var data *SchemaModel
+func (r *SchemaRegistryResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
+	var data *SchemaRegistryModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -126,8 +129,8 @@ func (r *SchemaResource) Read(ctx context.Context, req resource.ReadRequest, res
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data *SchemaModel
+func (r *SchemaRegistryResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data *SchemaRegistryModel
 
 	// Read Terraform plan data into the model
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
@@ -136,13 +139,13 @@ func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest,
 		return
 	}
 
-	schemaModel := &SchemaModel{
+	SchemaRegistryModel := &SchemaRegistryModel{
 		Subject:    data.Subject,
 		Schema:     data.Schema,
 		SchemaType: data.SchemaType,
 	}
 
-	err := r.client.UpdateSchema(schemaModel)
+	err := r.client.UpdateSchema(SchemaRegistryModel)
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create schema, got error: %s", err))
 		return
@@ -151,15 +154,15 @@ func (r *SchemaResource) Update(ctx context.Context, req resource.UpdateRequest,
 	// Write logs using the tflog package
 	tflog.Trace(ctx, "created a resource")
 
-	data.Version = schemaModel.Version
-	data.Id = schemaModel.Id
+	data.Version = SchemaRegistryModel.Version
+	data.Id = SchemaRegistryModel.Id
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
-func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
-	var data *SchemaModel
+func (r *SchemaRegistryResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {
+	var data *SchemaRegistryModel
 
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
@@ -179,6 +182,6 @@ func (r *SchemaResource) Delete(ctx context.Context, req resource.DeleteRequest,
 
 }
 
-func (r *SchemaResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
+func (r *SchemaRegistryResource) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("version"), req, resp)
 }

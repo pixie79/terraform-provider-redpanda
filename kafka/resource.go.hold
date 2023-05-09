@@ -1,5 +1,5 @@
-// Package provider.go
-package provider
+// Package kafka
+package kafka
 
 import (
 	"context"
@@ -22,7 +22,7 @@ func NewTopicResource() resource.Resource {
 
 // TopicResource defines the resource implementation.
 type TopicResource struct {
-	client *ClientTopic
+	client *ClientKafka
 }
 
 func (r *TopicResource) Metadata(_ context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -35,7 +35,7 @@ func (r *TopicResource) Schema(_ context.Context, _ resource.SchemaRequest, resp
 		MarkdownDescription: "Topic resource",
 
 		Attributes: map[string]schema.Attribute{
-			"topic": schema.StringAttribute{
+			"kafka": schema.StringAttribute{
 				MarkdownDescription: "Topic name",
 				Required:            true,
 			},
@@ -67,7 +67,7 @@ func (r *TopicResource) Configure(_ context.Context, req resource.ConfigureReque
 		return
 	}
 
-	client, ok := req.ProviderData.(*ClientTopic)
+	client, ok := req.ProviderData.(*ClientKafka)
 
 	if !ok {
 		resp.Diagnostics.AddError(

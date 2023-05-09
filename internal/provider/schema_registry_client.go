@@ -1,4 +1,4 @@
-// Package provider.go
+// Package provider
 package provider
 
 import (
@@ -13,22 +13,28 @@ import (
 	"strings"
 )
 
-type ClientSchema struct {
-	APIURL string
-}
+//type ClientSchemaRegistry struct {
+//	APIURL string
+//}
 
-func NewClientSchema(apiURL string) *ClientSchema {
-	return &ClientSchema{
-		APIURL: apiURL,
+//func NewClientSchemaRegistry(apiURL string) *ClientSchemaRegistry {
+//	return &ClientSchemaRegistry{
+//		APIURL: apiURL,
+//	}
+//}
+
+func NewClientSchemaRegistry(apiURL types.String) *RedPandaProvider {
+	return &RedPandaProvider{
+		SchemaRegistryApiUrl: apiURL,
 	}
 }
 
-type SchemaInfo struct {
+type SchemaRegistryInfo struct {
 	Schema     string `json:"schema"`
 	SchemaType string `json:"schemaType"`
 }
 
-type SchemaModel struct {
+type SchemaRegistryModel struct {
 	Subject    types.String `tfsdk:"subject"`
 	Schema     types.String `tfsdk:"schema"`
 	SchemaType types.String `tfsdk:"schema_type"`
@@ -36,21 +42,22 @@ type SchemaModel struct {
 	Id         types.Int64  `tfsdk:"id"`
 }
 
-func (c *ClientSchema) CreateSchema(schema *SchemaModel) error {
+func (p *RedPandaProvider) CreateSchema(schema *SchemaRegistryModel) error {
 
-	schemaInfo := SchemaInfo{
+	SchemaRegistryInfo := SchemaRegistryInfo{
 		Schema:     schema.Schema.ValueString(),
 		SchemaType: schema.SchemaType.ValueString(),
 	}
 
-	reqBody, err := json.Marshal(schemaInfo)
+	reqBody, err := json.Marshal(SchemaRegistryInfo)
 	if err != nil {
 		return err
 	}
 
 	subject := strings.Trim(schema.Subject.ValueString(), "\"")
+	schemaRegistryUrl := p.SchemaRegistryApiUrl.ValueString()
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/subjects/%s/versions", c.APIURL, subject), bytes.NewBuffer(reqBody))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/subjects/%s/versions", schemaRegistryUrl, subject), bytes.NewBuffer(reqBody))
 	if err != nil {
 		return err
 	}
@@ -81,7 +88,7 @@ func (c *ClientSchema) CreateSchema(schema *SchemaModel) error {
 	}
 
 	schema.Id = types.Int64Value(schemaResponse.Id)
-	version, err := c.GetLatestVersion(subject)
+	version, err := p.GetLatestVersion(subject)
 	if err != nil {
 		return err
 	}
@@ -90,9 +97,12 @@ func (c *ClientSchema) CreateSchema(schema *SchemaModel) error {
 	return nil
 }
 
-func (c *ClientSchema) GetLatestVersion(subject string) (int64, error) {
+func (p *RedPandaProvider) GetLatestVersion(subject string) (int64, error) {
 
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions", c.APIURL, subject), nil)
+	schemaRegistryUrl := p.SchemaRegistryApiUrl.String()
+	fmt.Println("url: " + schemaRegistryUrl)
+	fmt.Println("subject: " + subject)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions", schemaRegistryUrl, subject), nil)
 	if err != nil {
 		return 0, err
 	}
@@ -128,8 +138,8 @@ func (c *ClientSchema) GetLatestVersion(subject string) (int64, error) {
 
 }
 
-func (c *ClientSchema) GetSchema(subject string, version int64) (*SchemaModel, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions/%d", c.APIURL, subject, version), nil)
+func (p *RedPandaProvider) GetSchema(subject string, version int64) (*SchemaRegistryModel, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/subjects/%s/versions/%d", p.SchemaRegistryApiUrl, subject, version), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -171,7 +181,7 @@ func (c *ClientSchema) GetSchema(subject string, version int64) (*SchemaModel, e
 		schemaType = "AVRO"
 	}
 
-	schema := &SchemaModel{
+	schema := &SchemaRegistryModel{
 		Subject:    types.StringValue(schemaResponse.Subject),
 		Version:    types.Int64Value(schemaResponse.Version),
 		Id:         types.Int64Value(schemaResponse.Id),
@@ -182,13 +192,13 @@ func (c *ClientSchema) GetSchema(subject string, version int64) (*SchemaModel, e
 	return schema, nil
 }
 
-func (c *ClientSchema) UpdateSchema(schema *SchemaModel) error {
+func (p *RedPandaProvider) UpdateSchema(schema *SchemaRegistryModel) error {
 	// Alias to CreateSchema as schemas are created as new versions
-	return c.CreateSchema(schema)
+	return p.CreateSchema(schema)
 }
 
-func (c *ClientSchema) DeleteSchema(subject string) error {
-	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/subjects/%s", c.APIURL, subject), nil)
+func (p *RedPandaProvider) DeleteSchema(subject string) error {
+	req, err := http.NewRequest("DELETE", fmt.Sprintf("%s/subjects/%s", p.SchemaRegistryApiUrl, subject), nil)
 	if err != nil {
 		return err
 	}
